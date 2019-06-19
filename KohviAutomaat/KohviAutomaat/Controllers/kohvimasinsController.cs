@@ -13,13 +13,15 @@ namespace KohviAutomaat.Controllers
     public class kohvimasinsController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
+        [Authorize]
         public ActionResult Hooldus()
         {
             return View(db.kohvimasins.ToList());
         }
         public ActionResult klient()
         {
-            return View(db.kohvimasins.ToList());
+            var model = db.kohvimasins.Where(m => m.Topsejuua > 0 ).ToList();
+            return View(model);
         }
 
         // GET: kohvimasins/Joojook
@@ -39,6 +41,25 @@ namespace KohviAutomaat.Controllers
             db.SaveChanges();
             return RedirectToAction("Klient");
        
+        }
+        [Authorize]
+        // GET: kohvimasins/Täitepakk
+        public ActionResult Täitepakk(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            kohvimasin kohvimasin = db.kohvimasins.Find(id);
+            if (kohvimasin == null)
+            {
+                return HttpNotFound();
+            }
+            kohvimasin.Topsejuua += kohvimasin.Täitepakis;
+            db.Entry(kohvimasin).State = EntityState.Modified;
+            db.SaveChanges();
+            return RedirectToAction("Hooldus");
+
         }
 
         // GET: kohvimasins
